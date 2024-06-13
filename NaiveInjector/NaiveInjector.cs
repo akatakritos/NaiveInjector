@@ -2,25 +2,31 @@
 
 namespace NaiveInjector;
 
+internal record Registration(Type InterfaceType, Type ImplementationType);
 public class NaiveRegistry
 {
-    private readonly List<Type> _registeredTypes = new();
+    private readonly List<Registration> _registrations = [];
     public void Register<T>()
     {
-        _registeredTypes.Add(typeof(T));
+        _registrations.Add(new Registration(typeof(T), typeof(T)));
+    }
+
+    public void Register<TInterface, TImplementation>() where TImplementation : TInterface
+    {
+        _registrations.Add(new Registration(typeof(TInterface), typeof(TImplementation)));
     }
     
     public NaiveInjector Build()
     {
-        return new NaiveInjector(_registeredTypes);
+        return new NaiveInjector(_registrations);
     }
 }
 
 public class NaiveInjector
 {
-    private readonly List<Type> _registeredTypes;
+    private readonly List<Registration> _registeredTypes;
 
-    public NaiveInjector(List<Type> registeredTypes)
+    internal NaiveInjector(List<Registration> registeredTypes)
     {
         _registeredTypes = registeredTypes;
     }
@@ -31,27 +37,29 @@ public class NaiveInjector
     
     public object Resolve(Type type)
     {
-        if (!_registeredTypes.Contains(type))
+        var registration = _registeredTypes
+            .FirstOrDefault(r => r.InterfaceType == type);
+        if (registration == null)
         {
-            throw new UnregistedTypeException(type);
+            throw new UnregisteredTypeException(type);
         }
         
-        var ctor = type.GetConstructors()
+        var ctor = registration.ImplementationType.GetConstructors()
             .OrderByDescending(c => c.GetParameters().Length)
             .First();
         
         var parameters = ctor.GetParameters()
             .Select(p => Resolve(p.ParameterType))
             .ToArray();
-        var instance = Activator.CreateInstance(type, parameters);
+        var instance = Activator.CreateInstance(registration.ImplementationType, parameters);
         Debug.Assert(instance != null);
         return instance;
     }
 }
 
-public class UnregistedTypeException : Exception
+public class UnregisteredTypeException : Exception
 {
-    public UnregistedTypeException(Type type)
+    public UnregisteredTypeException(Type type)
         : base($"Type {type} is not registered")
     {
     }

@@ -37,7 +37,7 @@ public class ResolveTests
         var injector = registry.Build();
 
         injector.Invoking(i => i.Resolve<UnregisteredClass>())
-            .Should().Throw<UnregistedTypeException>();
+            .Should().Throw<UnregisteredTypeException>();
     }
     
     [Fact(DisplayName = "It can resolve a class with a dependency")]

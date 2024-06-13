@@ -1,0 +1,5 @@
+1. Simple resolver
+2. Throw when type not registered
+3. Support resolving ctor parameters
+4. resolve interface
+5. generic constraint so that implementation actually meets the interface
