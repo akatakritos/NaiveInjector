@@ -4,3 +4,4 @@
 4. resolve interface
 5. generic constraint so that implementation actually meets the interface
 6. singleton support
+7. scoped support
