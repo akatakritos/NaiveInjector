@@ -12,6 +12,12 @@ public class ScopedTests
     {
     }
 
+    class DisposableScoped : IDisposable
+    {
+        public bool WasDisposed { get; private set; }
+        public void Dispose() => WasDisposed = true;
+    }
+
     [Fact(DisplayName = "It can reuse a scoped instance")]
     public void ScopedTest()
     {
@@ -40,5 +46,22 @@ public class ScopedTests
 
         scope1.Resolve<Singleton>().Should().BeSameAs(scope2.Resolve<Singleton>());
         scope1.Resolve<Scoped>().Should().NotBeSameAs(scope2.Resolve<Scoped>());
+    }
+    
+    [Fact(DisplayName = "Scoped instances are disposed when the scope is disposed")]
+    public void ScopedDisposeTest()
+    {
+        var registry = new NaiveRegistry();
+        registry.RegisterScoped<DisposableScoped>();
+         var injector = registry.Build();
+
+         DisposableScoped instance;
+         using (var scope = injector.BeginScope())
+         {
+            instance = scope.Resolve<DisposableScoped>();
+            instance.WasDisposed.Should().BeFalse();
+         }
+        
+        instance.WasDisposed.Should().BeTrue();
     }
 }

@@ -5,3 +5,4 @@
 5. generic constraint so that implementation actually meets the interface
 6. singleton support
 7. scoped support
+8. scope disposal

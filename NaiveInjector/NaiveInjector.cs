@@ -47,6 +47,7 @@ public class NaiveRegistry
     {
         return new NaiveInjector(_registrations);
     }
+    
 }
 
 public class NaiveInjector: IScope
@@ -70,9 +71,21 @@ public class NaiveInjector: IScope
     public T Resolve<T>() => _rootScope.Resolve<T>();
 
     public object Resolve(Type type) => _rootScope.Resolve(type);
+
+    public void Dispose()
+    {
+        _rootScope.Dispose();
+        foreach (var instance in _singletons.Values)
+        {
+            if (instance is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+    }
 }
 
-public interface IScope
+public interface IScope: IDisposable
 {
     T Resolve<T>();
     object Resolve(Type type);
@@ -145,6 +158,17 @@ internal class Scope: IScope
         Debug.Assert(instance != null);
         
         return instance;
+    }
+
+    public void Dispose()
+    {
+        foreach (var instance in _scopedInstances.Values)
+        {
+            if (instance is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
     }
 }
 
